@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  draw-together:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - GEMINI_API_KEY=${GEMINI_API_KEY}
+    ports:
+      - "33110:33110"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=33110
+

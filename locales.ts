@@ -38,7 +38,12 @@ export const translations: Record<Language, Record<string, string>> = {
     home: "Home",
     errorTopic: "Failed to load topic. Please check API Key.",
     errorAi: "AI failed to draw. Try again?",
-    poweredBy: "Powered by Google Gemini API"
+    poweredBy: "Made By Forsion Ai Studio 2025",
+    p2Waiting: "Waiting for Player 1...",
+    p2WaitingDesc: "Player 1 is still drawing. Please wait or refresh the page to check for updates.",
+    refreshPage: "Refresh",
+    shareNow: "Share Link",
+    shareBeforeDraw: "Share this link with Player 2 now. They can wait for you to finish."
   },
   zh: {
     appTitle: "双人联画",
@@ -77,6 +82,11 @@ export const translations: Record<Language, Record<string, string>> = {
     home: "主页",
     errorTopic: "加载题目失败。请检查 API Key。",
     errorAi: "AI 绘画失败。重试？",
-    poweredBy: "由 Google Gemini API 提供支持"
+    poweredBy: "Made By Forsion Ai Studio 2025",
+    p2Waiting: "等待玩家1...",
+    p2WaitingDesc: "玩家1还在绘画中。请等待或刷新页面查看更新。",
+    refreshPage: "刷新页面",
+    shareNow: "分享链接",
+    shareBeforeDraw: "现在就把这个链接分享给玩家2，他们可以先等待你画完。"
   }
 };

@@ -1,11 +1,14 @@
 {
   "name": "draw-together",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite\" \"node server/index.cjs\"",
+    "dev:client": "vite",
+    "dev:server": "node server/index.cjs",
     "build": "vite build",
+    "start": "node server/index.cjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,12 +16,15 @@
     "@google/genai": "^1.33.0",
     "lz-string": "1.5.0",
     "react-dom": "^19.2.1",
-    "react": "^19.2.1"
+    "react": "^19.2.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "concurrently": "^8.2.2"
   }
 }

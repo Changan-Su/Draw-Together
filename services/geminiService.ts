@@ -1,24 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { DrawingPart, Language } from "../types";
+import { getRandomTopic } from "../data/topics";
 
 const apiKey = process.env.API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const generateTopic = async (lang: Language): Promise<string> => {
-  try {
-    const prompt = lang === 'zh'
-      ? "生成一个简单的、具体的日常物品名词，用于画图游戏（例如：'牙刷'、'草莓'、'苹果'、'椅子'）。只返回这一个词，不要标点符号，不要多余的文字。"
-      : "Generate a single, simple, concrete everyday object for a drawing game (e.g., 'Toothbrush', 'Strawberry', 'Apple', 'Chair'). Return ONLY the noun, no punctuation.";
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-    return response.text?.trim() || (lang === 'zh' ? "快乐的小狗" : "A Happy Dog");
-  } catch (error) {
-    console.error("Error generating topic:", error);
-    return lang === 'zh' ? "神秘物体" : "A Mystery Object";
-  }
+  // 直接使用本地题库，更快更稳定
+  return getRandomTopic(lang);
 };
 
 export const generateAiDrawing = async (topic: string, part: DrawingPart): Promise<string> => {
