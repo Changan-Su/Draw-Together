@@ -1,0 +1,5 @@
+{
+  "name": "Draw Together",
+  "description": "A collaborative drawing game where two players (or one player and AI) draw different halves of a randomly selected topic without seeing the other's work.",
+  "requestFramePermissions": []
+}
