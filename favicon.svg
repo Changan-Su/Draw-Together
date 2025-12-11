@@ -1,0 +1,27 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="url(#bg)"/>
+  
+  <!-- Split canvas -->
+  <rect x="8" y="16" width="48" height="24" rx="2" fill="#ffffff" opacity="0.95"/>
+  <line x1="32" y1="16" x2="32" y2="40" stroke="#e5e7eb" stroke-width="1"/>
+  
+  <!-- Top drawing -->
+  <circle cx="20" cy="24" r="2" fill="#fbbf24"/>
+  <circle cx="44" cy="28" r="1.5" fill="#f59e0b"/>
+  
+  <!-- Bottom drawing -->
+  <circle cx="24" cy="32" r="2" fill="#3b82f6"/>
+  <circle cx="40" cy="30" r="1.5" fill="#2563eb"/>
+  
+  <!-- Brushes -->
+  <ellipse cx="12" cy="8" rx="4" ry="1.5" fill="#fbbf24" transform="rotate(-20 12 8)"/>
+  <ellipse cx="52" cy="56" rx="4" ry="1.5" fill="#3b82f6" transform="rotate(20 52 56)"/>
+</svg>

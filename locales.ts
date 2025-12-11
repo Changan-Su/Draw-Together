@@ -2,7 +2,7 @@ import { Language } from "./types";
 
 export const translations: Record<Language, Record<string, string>> = {
   en: {
-    appTitle: "DuoDraw",
+    appTitle: "Two Draws One",
     appSubtitle: "The blind collaborative drawing game.",
     passAndPlay: "Pass & Play",
     passAndPlayDesc: "Pass the device to a friend",
@@ -46,7 +46,7 @@ export const translations: Record<Language, Record<string, string>> = {
     shareBeforeDraw: "Share this link with Player 2 now. They can wait for you to finish."
   },
   zh: {
-    appTitle: "双人联画",
+    appTitle: "双人成画",
     appSubtitle: "蒙眼合作绘画游戏",
     passAndPlay: "传阅模式",
     passAndPlayDesc: "把设备传给身边的朋友",

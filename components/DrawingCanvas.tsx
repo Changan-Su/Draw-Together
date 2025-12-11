@@ -1,20 +1,50 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { RefreshCw, Check, Undo, Trash2 } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Check, Trash2 } from 'lucide-react';
 import { Stroke } from '../types';
 
 interface DrawingCanvasProps {
-  partName: string; // e.g., "Upper Part" or "Lower Part"
+  partName: string;
   topic: string;
   onConfirm: (dataUrl: string, strokes: Stroke[]) => void;
   height: number;
   width: number;
-  isLowerHalf?: boolean; // If true, we might want to show a guide or adjust styling
+  isLowerHalf?: boolean;
   labels: {
     clear: string;
     done: string;
     instruction: string;
   };
 }
+
+// Color palette
+const COLORS = [
+  { name: 'black', hex: '#000000' },
+  { name: 'red', hex: '#EF4444' },
+  { name: 'orange', hex: '#F97316' },
+  { name: 'yellow', hex: '#EAB308' },
+  { name: 'green', hex: '#22C55E' },
+  { name: 'blue', hex: '#3B82F6' },
+  { name: 'purple', hex: '#A855F7' },
+  { name: 'pink', hex: '#EC4899' },
+  { name: 'brown', hex: '#92400E' },
+];
+
+// Get color from stroke (first element is negative color index, or default to black)
+const getStrokeColor = (stroke: Stroke): string => {
+  if (stroke.length > 0 && stroke[0] < 0) {
+    const colorIndex = Math.abs(stroke[0]) - 1;
+    return COLORS[colorIndex]?.hex || COLORS[0].hex;
+  }
+  return COLORS[0].hex; // Default black for old strokes
+};
+
+// Get points from stroke (skip color index if present)
+const getStrokePoints = (stroke: Stroke): number[] => {
+  if (stroke.length > 0 && stroke[0] < 0) {
+    return stroke.slice(1);
+  }
+  return stroke;
+};
 
 export const renderStrokesToDataUrl = (strokes: Stroke[], width: number, height: number): string => {
   const canvas = document.createElement('canvas');
@@ -28,14 +58,16 @@ export const renderStrokesToDataUrl = (strokes: Stroke[], width: number, height:
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineWidth = 6;
-    ctx.strokeStyle = '#000000';
     
     strokes.forEach(stroke => {
-      if (stroke.length < 2) return;
+      const points = getStrokePoints(stroke);
+      if (points.length < 2) return;
+      
+      ctx.strokeStyle = getStrokeColor(stroke);
       ctx.beginPath();
-      ctx.moveTo(stroke[0], stroke[1]);
-      for (let i = 2; i < stroke.length; i += 2) {
-        ctx.lineTo(stroke[i], stroke[i+1]);
+      ctx.moveTo(points[0], points[1]);
+      for (let i = 2; i < points.length; i += 2) {
+        ctx.lineTo(points[i], points[i+1]);
       }
       ctx.stroke();
     });
@@ -56,6 +88,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const [isDrawing, setIsDrawing] = useState(false);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [currentStroke, setCurrentStroke] = useState<Stroke>([]);
+  const [selectedColor, setSelectedColor] = useState(0); // Index into COLORS
   const lastPointRef = useRef<{x: number, y: number} | null>(null);
   
   // Setup canvas context
@@ -63,7 +96,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Handle high DPI displays
     const dpr = window.devicePixelRatio || 1;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
@@ -74,11 +106,44 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.lineWidth = 6;
-      ctx.strokeStyle = '#000000';
+      ctx.strokeStyle = COLORS[selectedColor].hex;
     }
   }, [height, width]);
 
-  const getCoordinates = (event: React.MouseEvent | React.TouchEvent | MouseEvent | TouchEvent) => {
+  // Update stroke color when selection changes
+  useEffect(() => {
+    const ctx = canvasRef.current?.getContext('2d');
+    if (ctx) {
+      ctx.strokeStyle = COLORS[selectedColor].hex;
+    }
+  }, [selectedColor]);
+
+  // Redraw all strokes (needed after clear or when canvas resets)
+  const redrawStrokes = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    strokes.forEach(stroke => {
+      const points = getStrokePoints(stroke);
+      if (points.length < 2) return;
+      
+      ctx.strokeStyle = getStrokeColor(stroke);
+      ctx.beginPath();
+      ctx.moveTo(points[0], points[1]);
+      for (let i = 2; i < points.length; i += 2) {
+        ctx.lineTo(points[i], points[i+1]);
+      }
+      ctx.stroke();
+    });
+    
+    // Reset to current selected color
+    ctx.strokeStyle = COLORS[selectedColor].hex;
+  };
+
+  const getCoordinates = (event: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     
@@ -93,7 +158,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       clientY = (event as React.MouseEvent).clientY;
     }
 
-    // Return integer coords for better compression
     return {
       x: Math.round(clientX - rect.left),
       y: Math.round(clientY - rect.top)
@@ -101,7 +165,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault(); // Prevent scrolling
+    e.preventDefault();
     setIsDrawing(true);
     
     const { x, y } = getCoordinates(e);
@@ -109,21 +173,21 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     if (ctx) {
       ctx.beginPath();
       ctx.moveTo(x, y);
-      setCurrentStroke([x, y]);
+      // Store color index as negative number at start of stroke
+      setCurrentStroke([-(selectedColor + 1), x, y]);
       lastPointRef.current = { x, y };
     }
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault(); // Prevent scrolling
+    e.preventDefault();
     if (!isDrawing) return;
 
     const { x, y } = getCoordinates(e);
 
-    // Optimization: Drop points that are too close (saves ~50-70% data size)
     if (lastPointRef.current) {
-        const distSq = (x - lastPointRef.current.x) ** 2 + (y - lastPointRef.current.y) ** 2;
-        if (distSq < 16) return; // Skip if moved less than 4 pixels
+      const distSq = (x - lastPointRef.current.x) ** 2 + (y - lastPointRef.current.y) ** 2;
+      if (distSq < 16) return;
     }
 
     const ctx = canvasRef.current?.getContext('2d');
@@ -145,7 +209,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       ctx.closePath();
     }
     
-    if (currentStroke.length > 0) {
+    if (currentStroke.length > 1) {
       setStrokes(prev => [...prev, currentStroke]);
       setCurrentStroke([]);
     }
@@ -153,7 +217,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas?.getContext('2d');
     if (canvas && ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       setStrokes([]);
@@ -184,10 +248,27 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
          </div>
       </div>
 
+      {/* Color Palette */}
+      <div className="w-full bg-white px-4 py-2 flex justify-center gap-2 border-b border-gray-100">
+        {COLORS.map((color, index) => (
+          <button
+            key={color.name}
+            onClick={() => setSelectedColor(index)}
+            className={`w-8 h-8 rounded-full transition-all ${
+              selectedColor === index 
+                ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' 
+                : 'hover:scale-105'
+            }`}
+            style={{ backgroundColor: color.hex }}
+            aria-label={color.name}
+          />
+        ))}
+      </div>
+
       {/* Canvas Container */}
       <div className="relative bg-white shadow-xl w-full overflow-hidden" style={{ height: height }}>
         
-        {/* Helper dashed line to indicate connection point */}
+        {/* Helper dashed line */}
         <div className={`absolute left-0 w-full border-b-2 border-dashed border-gray-200 pointer-events-none 
           ${isLowerHalf ? 'top-0' : 'bottom-0'}`} 
         />
